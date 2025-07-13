@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
+import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 
@@ -9,6 +10,7 @@ async function bootstrap() {
     bufferLogs: true
   });
   
+  app.use(cookieParser())
   app.useLogger(app.get(Logger))
 
   app.useGlobalPipes(new ValidationPipe({
@@ -17,6 +19,7 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }))
   app.useGlobalFilters(new HttpExceptionFilter())
+
   await app.listen(Number(process.env.PORT) ?? 3000);
 }
 bootstrap();

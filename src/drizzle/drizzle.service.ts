@@ -1,21 +1,24 @@
-import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Client from 'postgres'
+import { Client } from 'pg'
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from './schema';
 
-export const DrizzleProviderName = 'DrizzleProvider'
+export const DrizzleAsyncProvider = 'DrizzleProvider'
 
-export const DrizzleProvider: Provider = {
-    provide: DrizzleProviderName,
-    inject: [ConfigService],
-    useFactory: (config: ConfigService) => {
-        const client = Client(
-            {
-                host: config.get<string>('DB_HOST'),
-                port: config.get<number>('DB_PORT'),
-                username: config.get<string>('DB_USER'),
-                pass: config.get<string>('DB_PASSWORD'),
-                db: config.get<string>('DB_NAME'),
-            }
-        )
+export const drizzleProvider = [
+    {
+        provide: DrizzleAsyncProvider,
+        inject: [ConfigService],
+        useFactory: async (configService: ConfigService) => {
+            const client = new Client({
+                host: configService.get<string>('DB_HOST'),
+                port: configService.get<number>('DB_PORT'),
+                user: configService.get<string>('DB_USER'),
+                password: configService.get<string>('DB_PASSWORD'),
+                database: configService.get<string>('DB_NAME'),
+                connectionString: configService.get<string>('DATABASE_URL'),
+            })
+            return drizzle(client, { schema }) as NodePgDatabase<typeof schema>
+        }
     }
-}
+]

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Module } from '@nestjs/common';
+import { HttpException, HttpStatus, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -6,6 +6,7 @@ import { LoggerModule, PinoLogger } from 'nestjs-pino';
 import * as z from 'zod'
 import { configSchema } from './common/config';
 import { DrizzleModule } from './drizzle/drizzle.module';
+import { AuthMiddleware } from './middlewares/auth.middleware';
 
 @Module({
   imports: [
@@ -33,4 +34,11 @@ import { DrizzleModule } from './drizzle/drizzle.module';
   controllers: [AppController],
   providers: [AppService, PinoLogger],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude()
+      .forRoutes('*'); // Apply AuthMiddleware to all routes
+  }
+}
