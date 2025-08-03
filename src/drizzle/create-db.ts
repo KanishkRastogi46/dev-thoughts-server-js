@@ -4,12 +4,7 @@ import { config } from "dotenv";
 config()
 
 async function createDatabase() {
-    const client = new Client({
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432'),
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'root',
-    });
+    const client = new Client(process.env.DATABASE_URL);
 
     try {
         await client.connect();
@@ -33,6 +28,7 @@ async function createDatabase() {
     } finally {
         // Always close the connection
         await client.end();
+        console.log("Database connection closed.");
     }
 }
 

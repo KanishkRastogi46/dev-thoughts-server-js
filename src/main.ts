@@ -1,14 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
+import { ConfigService } from '@nestjs/config';
+import { GlobalInterceptor } from './common/interceptor/global.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true
   });
+
+  const configService = app.get(ConfigService);
+  const port: number = configService.get<number>('PORT');
   
   app.use(cookieParser())
   app.useLogger(app.get(Logger))
@@ -19,7 +24,10 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }))
   app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalInterceptors(new GlobalInterceptor())
 
-  await app.listen(Number(process.env.PORT) ?? 3000);
+  await app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 }
 bootstrap();
