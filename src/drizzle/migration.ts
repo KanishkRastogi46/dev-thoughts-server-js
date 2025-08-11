@@ -10,11 +10,13 @@ const client = new Client({
     connectionString: process.env.DATABASE_URL,
 });
 
-const db = drizzle(client);
+const db = drizzle(process.env.DATABASE_URL);
 
 
 const main = async () => {
     try {
+        await client.connect();
+        console.log('Connected to the database');
         await migrate(db, { migrationsFolder: './src/drizzle/migrations' });
         console.log('Migrations applied successfully!');
     } catch (error) {
@@ -27,4 +29,9 @@ const main = async () => {
     }
 };
 
-main();
+main()
+    .then(() => console.log('Migration script completed'))
+    .catch((error) => {
+        console.error('Migration script failed:', error);
+        process.exit(1);
+    });
