@@ -7,6 +7,6 @@ import * as schema from './schema';
 export class DrizzleService {
     constructor(
         @Inject(DrizzleAsyncProvider)
-        private readonly db: NodePgDatabase<typeof schema>
+        public readonly db: NodePgDatabase<typeof schema>
     ) {}
 }

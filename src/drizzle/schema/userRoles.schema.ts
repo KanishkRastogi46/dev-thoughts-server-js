@@ -1,10 +1,8 @@
-import { pgEnum, pgTable, serial, timestamp } from "drizzle-orm/pg-core"
-
-export const userRoles = pgEnum('user_roles_enum', ['admin', 'user']);
+import { pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
 
 export const userRolesTable = pgTable('userRoles', {
     id: serial('id').primaryKey(),
-    role: userRoles('role').default('user').array().notNull(),
+    role: text('role').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
