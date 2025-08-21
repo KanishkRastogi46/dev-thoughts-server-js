@@ -15,6 +15,13 @@
       "when": 1755551432464,
       "tag": "0001_userRoleTable_change",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755724437981,
+      "tag": "0002_countriesTable",
+      "breakpoints": true
     }
   ]
 }
