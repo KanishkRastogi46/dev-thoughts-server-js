@@ -8,6 +8,27 @@
       "when": 1754888040027,
       "tag": "0000_stormy_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755551432464,
+      "tag": "0001_userRoleTable_change",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755724437981,
+      "tag": "0002_countriesTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1755945046792,
+      "tag": "0003_added_countries_in_users",
+      "breakpoints": true
     }
   ]
 }

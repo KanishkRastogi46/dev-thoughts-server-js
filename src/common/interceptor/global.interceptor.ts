@@ -10,13 +10,6 @@ export class GlobalInterceptor implements NestInterceptor {
         const responseTime = Date.now() - now;
         console.log(`Request processed in ${responseTime}ms`);
       }),
-      map((data) => {
-        return {
-          data,
-          timestamp: new Date().toISOString(),
-        }
-      }),
-      catchError((err) => throwError(() => new BadGatewayException(err.message)))
     );
   }
 }

@@ -5,9 +5,10 @@ export function generateToken(
     secret: string,
     options: SignOptions
 ) {
-    return sign(
+    const accessToken = sign(
         payload,
         secret,
         options
     )
+    return accessToken
 }
