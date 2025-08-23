@@ -2,10 +2,19 @@ import { Injectable, NestMiddleware, UnauthorizedException } from "@nestjs/commo
 import { Request, Response, NextFunction } from "express";
 import { decodeToken } from "src/utils/jwt-decode";
 import { JwtPayload } from "src/services/auth/interface/jwt-payload.interface";
+import { HttpClientService } from "src/utils/http-client.service";
+import { generateCookie } from "src/utils/generate-cookie";
+import { ConfigService } from "@nestjs/config";
+import { routes } from "src/common/api-route";
 
 @Injectable()
 export class ProtectedRoutesMiddleware implements NestMiddleware {
-    use(req: Request, res: Response, next: NextFunction) {
+    constructor(
+        private readonly httpClientService: HttpClientService,
+        private readonly configService: ConfigService
+    ) {}
+
+    async use(req: Request, res: Response, next: NextFunction) {
         try {
             const publicRoutes = [
                 "/",
@@ -28,6 +37,36 @@ export class ProtectedRoutesMiddleware implements NestMiddleware {
                     throw new UnauthorizedException('Unauthorized')
                 }
                 const decoded = decodeToken(token, process.env.JWT_SECRET) as JwtPayload
+
+                const expiryTime = decoded.exp * 1000
+                const bufferTime = 2 * 60 * 1000
+                if (Date.now() > (expiryTime - bufferTime)) {
+                    const response = await this.httpClientService.apiCall(
+                        routes.AUTH,
+                        '/auth/refresh-token',
+                        'POST',
+                        { userId: decoded.userId },
+                        { 'Authorization': `Bearer ${token}` }
+                    )
+                    if (response.status !== 200) {
+                        throw new UnauthorizedException('Session expired. Please login again.')
+                    }
+                    const newAccessToken = response.data.accessToken
+
+                    res.clearCookie('accessToken')
+                    generateCookie(
+                        res,
+                        'accessToken',
+                        newAccessToken,
+                        {
+                            httpOnly: true,
+                            secure: this.configService.get('NODE_ENV') === 'production',
+                            sameSite: 'lax',
+                            maxAge: parseInt(process.env.JWT_EXPIRY_TIME) * 1000,
+                        }
+                    )
+                }
+
                 req.user = decoded.userId
                 next()
             }
