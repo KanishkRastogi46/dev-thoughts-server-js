@@ -27,6 +27,7 @@ export class AuthController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-
+        const loginResponse = await this.authService.login(res, loginDto)
+        return res.status(200).json(loginResponse);
     }
 }

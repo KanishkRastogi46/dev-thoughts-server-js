@@ -28,7 +28,7 @@ export class ProtectedRoutesMiddleware implements NestMiddleware {
                     throw new UnauthorizedException('Unauthorized')
                 }
                 const decoded = decodeToken(token, process.env.JWT_SECRET) as JwtPayload
-                req.user = decoded
+                req.user = decoded.userId
                 next()
             }
         } catch (error) {

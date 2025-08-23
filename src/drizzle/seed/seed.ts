@@ -1,16 +1,17 @@
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Client } from "pg"
+import axios from "axios"
 import 'dotenv/config'
 import { userRolesTable } from "../schema/userRoles.schema"
-import axios from "axios"
 import { countries } from "../schema/countries.schema"
+import { CountryCode } from "../schema/country-code.schema"
 
 
 const client = new Client({
     connectionString: process.env.DATABASE_URL,
 })
 
-const seedUserRoles = async () => {
+const seedData = async () => {
     try {
         await client.connect()
         console.log('Connected to the database successfully');
@@ -18,9 +19,9 @@ const seedUserRoles = async () => {
         const db = drizzle(client)
 
         const roles = [
-            { 'id': 1, 'role': "user" },
-            { 'id': 2, 'role': "admin" },
-            { 'id': 3, 'role': "super_admin" }
+            { id: 1, role: "user" },
+            { id: 2, role: "admin" },
+            { id: 3, role: "super_admin" }
         ]
 
         const inserted = await db.insert(userRolesTable).values(roles).returning()
@@ -29,43 +30,54 @@ const seedUserRoles = async () => {
             throw new Error('Failed to seed user roles')
         }
         console.log('User roles seeded successfully');
-    } catch (error) {
-        console.error('Error seeding user roles:', error)
-        throw error
-    } finally {
-        await client.end()
-        console.log('Database connection closed')
-        process.exit(0)
-    }
-}
-
-const seedCountriesData = async () => {
-    try {
-        client.connect()
-        console.log('Connected to the database successfully');
-
-        const db = drizzle(client)
 
         interface Country {
             id: number
             name: string
         }
+        interface CountryCode {
+            id: number
+            code: string
+            name: string
+        }
 
-        const countriesRes = await axios.get('https://restcountries.com/v3.1/all?fields=name')
+        const countriesRes = await axios.get(
+            "https://api.countrystatecity.in/v1/countries",
+            {
+                headers: {
+                    "X-CSCAPI-KEY": "eHltRDk0QUxaeXhmV0FKdU04NUV3QmJicm80UGdMNTlwbkZFSzhlQg==",
+                    Accept: "application/json"
+                }
+            }
+        )
         if (countriesRes.status !== 200) {
             throw new Error('Failed to fetch countries data')
         }
-        const countryData: Country[] = countriesRes.data.map((country: any, index: number) => {
-            return { id: index+1, name: country.name.common }
-        })
-        const sortedCountryData = countryData
-                                    .sort((a, b) => a.name.localeCompare(b.name))
-                                    .map((country, index): Country => ({ id: index+1, name: country.name }))
-        const insertedCountries = await db.insert(countries).values(sortedCountryData).returning()
+
+        const countryData: Country[] = countriesRes.data.map((country: any) => (
+            {
+                id: country.id,
+                name: country.name
+            }
+        ))
+        const insertedCountries = await db.insert(countries).values(countryData).returning()
         if (insertedCountries.length === 0) {
             console.error('Failed to seed countries data')
         }
         console.log('Countries data seeded successfully');
+
+        const countryCodeData: CountryCode[] = countriesRes.data.map((country: any) => (
+            {
+                id:  country.id,
+                code: country.phonecode,
+                name: country.name
+            }
+        ))
+        const insertedCountryCodes = await db.insert(CountryCode).values(countryCodeData).returning()
+        if (insertedCountryCodes.length === 0) {
+            console.error('Failed to seed country codes data')
+        }
+        console.log('Country codes data seeded successfully');
     } catch (error) {
         throw new Error('Failed to connect to the database')
     } finally {
@@ -75,3 +87,8 @@ const seedCountriesData = async () => {
     }
 }
 
+seedData()
+    .catch(error => {
+        console.error('Error seeding user roles:', error)
+        process.exit(1)
+    })
