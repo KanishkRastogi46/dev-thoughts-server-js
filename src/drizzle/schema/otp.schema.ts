@@ -12,8 +12,8 @@ export const otp = pgTable('otps', {
     attempts: integer('attempts').default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    expiresAt: timestamp('expires_at').default(sql`now() + interval '5 minutes'`).notNull(),
-    lastOtpTime: timestamp('last_otp_time').defaultNow(),
+    expiresAt: timestamp('expires_at'),
+    lastOtpTime: timestamp('last_otp_time'),
 })
 
 export const otpRelation = relations(otp, ({ one }) => ({
