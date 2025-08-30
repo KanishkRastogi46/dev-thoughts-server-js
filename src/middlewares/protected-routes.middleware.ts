@@ -9,10 +9,15 @@ import { routes } from "src/common/api-route";
 
 @Injectable()
 export class ProtectedRoutesMiddleware implements NestMiddleware {
+    private readonly httpClientService: HttpClientService
     constructor(
-        private readonly httpClientService: HttpClientService,
         private readonly configService: ConfigService
-    ) {}
+    ) {
+        this.httpClientService = new HttpClientService(
+            null,
+            this.configService.get('API_BASE_URL')
+        )
+    }
 
     async use(req: Request, res: Response, next: NextFunction) {
         try {
@@ -20,11 +25,10 @@ export class ProtectedRoutesMiddleware implements NestMiddleware {
                 "/",
                 '/auth/login',
                 '/auth/register',
+                '/auth/verify-otp',
+                '/auth/resend-otp',
                 '/auth/forgot-password',
-                '/auth/reset-password',
-                '/auth/verify-email',
-                '/auth/resend-verify-email',
-                '/auth/refresh-token',
+                '/auth/new-password',
             ]
 
             const url = req.url
@@ -67,7 +71,10 @@ export class ProtectedRoutesMiddleware implements NestMiddleware {
                     )
                 }
 
-                req.user = decoded.userId
+                req.user = {
+                    id: decoded.userId,
+                    role: decoded.role
+                }
                 next()
             }
         } catch (error) {
