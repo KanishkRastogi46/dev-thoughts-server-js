@@ -29,6 +29,13 @@
       "when": 1755945046792,
       "tag": "0003_added_countries_in_users",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1756072206519,
+      "tag": "0004_oauth_table_created_otp_modified",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { DrizzleModule } from './drizzle/drizzle.module';
 import { AuthModule } from './services/auth/auth.module';
 import { UserModule } from './services/user/user.module';
 import { ProtectedRoutesMiddleware } from './middlewares/protected-routes.middleware';
+import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 
 @Module({
   imports: [
@@ -123,7 +124,7 @@ import { ProtectedRoutesMiddleware } from './middlewares/protected-routes.middle
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(ProtectedRoutesMiddleware)
+      .apply(ProtectedRoutesMiddleware, correlationIdMiddleware)
       .forRoutes('*')
   }
 }
