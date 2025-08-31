@@ -36,6 +36,13 @@
       "when": 1756072206519,
       "tag": "0004_oauth_table_created_otp_modified",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756630890599,
+      "tag": "0005_posts_comments_categories_userChanges",
+      "breakpoints": true
     }
   ]
 }
