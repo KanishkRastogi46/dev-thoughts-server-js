@@ -1,5 +1,0 @@
-import * as usersSchema from './users.schema'
-import * as commentsSchema from './comments.schema'
-import * as groupsSchema from './groups.schema'
-import * as blogsSchema from './blogs.schema'
-import * as userRolesSchema from './userRoles.schema'
