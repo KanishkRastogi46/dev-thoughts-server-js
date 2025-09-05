@@ -90,13 +90,21 @@ export class AuthRepository {
                 if (checkOtp[0].otp === '' || (checkOtp[0].expiresAt && checkOtp[0].expiresAt.getTime() < Date.now())) {
                     return await this.drizzle.db
                         .update(otp)
-                        .set({ otp: otpValue, status: 'pending', expiresAt: new Date(Date.now() + 5 * 60 * 1000), updatedAt: new Date(), lastOtpTime: new Date() })
+                        .set({ 
+                            otp: otpValue, 
+                            status: 'pending', 
+                            reason,
+                            attempts: 1,
+                            expiresAt: new Date(Date.now() + 5 * 60 * 1000), 
+                            updatedAt: new Date(), 
+                            lastOtpTime: new Date() 
+                        })
                         .where(
                             eq(otp.user, userId)
                         )
                         .returning({ otp: otp.otp })
                 }
-                else return [{ otp: checkOtp[0].otp }]
+                else throw new BadRequestException('Otp already sent, please check your email')
             } 
     
             return await this.drizzle.db
@@ -118,18 +126,17 @@ export class AuthRepository {
     async getOtp(userId: number) {
         try {
             const result = await this.drizzle.db
-                            .select({ 
-                                otp: otp.otp,
-                                expiresAt: otp.expiresAt
-                            })
-                            .from(otp)
-                            .where(
-                                and(
-                                    eq(otp.user, userId)
-                                )
+                        .select({ 
+                            otp: otp.otp,
+                            expiresAt: otp.expiresAt
+                        })
+                        .from(otp)
+                        .where(
+                            and(
+                                eq(otp.user, userId)
                             )
+                        )
             
-            console.log('result', result);
             if (result.length === 0) {
                 throw new HttpException('No otp found', HttpStatus.NOT_FOUND)
             }
@@ -156,12 +163,12 @@ export class AuthRepository {
     async canResendOtp(userId: number) {
         try {
             const result = await this.drizzle.db
-                                .select()
-                                .from(otp)
-                                .where(
-                                eq(otp.user, userId)
-                                )
-                                .limit(1)
+                        .select()
+                        .from(otp)
+                        .where(
+                            eq(otp.user, userId)
+                        )
+                        .limit(1)
             if (result.length === 0) {
                 throw new BadRequestException("No otp found")
             }

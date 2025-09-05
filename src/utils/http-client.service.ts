@@ -1,12 +1,17 @@
+import { Injectable } from "@nestjs/common"
+import { ConfigService } from "@nestjs/config"
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import 'dotenv/config'
 
+@Injectable()
 export class HttpClientService {
+    private readonly baseUrl: string
+    private readonly axiosInstance: AxiosInstance
     constructor(
-        private readonly axiosInstance: AxiosInstance,
-        private readonly baseUrl: string,
+        private readonly configService: ConfigService
     ) {
         this.axiosInstance = axios.create()
-        this.baseUrl = baseUrl
+        this.baseUrl = this.configService.get<string>('API_BASE_URL')
     }
 
     async apiCall<T>(

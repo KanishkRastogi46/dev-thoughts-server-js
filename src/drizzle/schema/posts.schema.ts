@@ -1,13 +1,12 @@
 import { pgTable, integer, serial, text, timestamp } from "drizzle-orm/pg-core"
-import { userTable } from "./users.schema"
 import { postCategoriesTable } from "./post-categories.schema"
-import { title } from "process"
 import { commentsTable } from "./comments.schema"
 import { relations } from "drizzle-orm"
+import { profileTable } from "./profile.schema"
 
 export const postsTable = pgTable("posts", {
     id: serial("id").primaryKey(),
-    user: integer('user').references(() => userTable.id, { onDelete: 'cascade' }),
+    profile: integer('profile').references(() => profileTable.id, { onDelete: 'cascade' }),
     category: integer('category').references(() => postCategoriesTable.id, { onDelete: 'cascade' }).array().default([]),
     title: text('title').notNull(),
     text: text('text').notNull(),
@@ -18,9 +17,9 @@ export const postsTable = pgTable("posts", {
 })
 
 export const postsRelations = relations(postsTable, ({ one, many }) => ({
-    user: one(userTable, {
+    profile: one(profileTable, {
         fields: [postsTable.user],
-        references: [userTable.id]
+        references: [profileTable.id]
     }),
     category: one(postCategoriesTable, {
         fields: [postsTable.category],

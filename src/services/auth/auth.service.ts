@@ -1,7 +1,10 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import { Request, Response } from 'express'
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
+import * as jwt from 'jsonwebtoken'
 
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -12,9 +15,8 @@ import { comparePassword } from 'src/utils/compare-password';
 import { generateToken } from 'src/utils/generate-token';
 import { generateCookie } from 'src/utils/generate-cookie';
 import { generateOTP } from 'src/utils/generate-otp';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { th } from 'zod/locales';
+import { MailService } from 'src/utils/email.service';
+import { HttpClientService } from 'src/utils/http-client.service';
 
 
 @Injectable()
@@ -22,9 +24,15 @@ export class AuthService {
     constructor(
         private readonly logger: PinoLogger,
         private readonly configService: ConfigService,
-        private readonly authRepository: AuthRepository
+        private readonly authRepository: AuthRepository,
+        private readonly httpClientService: HttpClientService
     ) {}
 
+    /**
+     * @description Registers a new user
+     * @param registerDto - data transfer object for registering a new user
+     * @returns userId: number
+     */
     async register(registerDto: RegisterDto): Promise<number> {
         try {
             if (registerDto.password !== registerDto.confirmPassword) {
@@ -67,6 +75,12 @@ export class AuthService {
         }
     }
 
+    /**
+     * @description Logs in a user
+     * @param res Express Response object
+     * @param loginDto data transfer object for logging in a user
+     * @returns 
+     */
     async login(res: Response, loginDto: LoginDto): Promise<any> {
         try {
             const user = await this.authRepository.findUser(loginDto.identifier)
@@ -148,6 +162,12 @@ export class AuthService {
         }
     }
 
+    /**
+     * @description Validates the OTP for a user
+     * @param userId number
+     * @param otpValue string
+     * @returns 
+     */
     async validateOtp(userId: number, otpValue: string) {
         try {
             const otp = await this.authRepository.getOtp(userId)
@@ -164,50 +184,69 @@ export class AuthService {
         }
     }
 
+    /**
+     * @description Refreshes the access token using the refresh token and buffers time if access token is about to expire
+     * @param req Express Request object
+     * @returns 
+     */
     async refreshToken(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
         try {
             const { userId } = req.body
-            const user = await this.authRepository.getUserById(userId)
-            if (user.length === 0) {
-                this.logger.warn('User not found');
-                throw new BadRequestException('User not found');
-            }
+            if (userId) {
+                const user = await this.authRepository.getUserById(userId)
+                if (user.length === 0) {
+                    this.logger.warn('User not found');
+                    throw new BadRequestException('User not found');
+                }
 
-            const accessToken = req.cookies['accessToken'] || req.headers['authorization']?.split(' ')[1]
-            if (accessToken) {
-                const newAccessToken = generateToken(
-                    { 
-                        userId: req.user['userId'], 
-                        role: req.user['role'], 
-                        email: req.user['email'] 
-                    },
-                    this.configService.get<string>('JWT_SECRET_KEY'),
-                    { 
-                        algorithm: this.configService.get('JWT_ALGORITHM'),
-                        expiresIn: parseInt(this.configService.get('JWT_EXPIRY_TIME')),
-                        issuer: this.configService.get('JWT_ISSUER'),
-                        audience: this.configService.get('JWT_AUDIENCE')
+                const accessToken = req.cookies['accessToken'] || req.headers['authorization']?.split(' ')[1]
+                if (accessToken) {
+                    const newAccessToken = generateToken(
+                        { 
+                            userId: req.user['userId'], 
+                            role: req.user['role'], 
+                            email: req.user['email'] 
+                        },
+                        this.configService.get<string>('JWT_SECRET_KEY'),
+                        { 
+                            algorithm: this.configService.get('JWT_ALGORITHM'),
+                            expiresIn: parseInt(this.configService.get('JWT_EXPIRY_TIME')),
+                            issuer: this.configService.get('JWT_ISSUER'),
+                            audience: this.configService.get('JWT_AUDIENCE')
+                        }
+                    )
+                    req.res.clearCookie('accessToken')
+                    generateCookie(
+                        req.res,
+                        'accessToken',
+                        newAccessToken,
+                        {
+                            httpOnly: true,
+                            secure: this.configService.get('NODE_ENV') === 'production',
+                            sameSite: 'lax',
+                            maxAge: parseInt(this.configService.get('JWT_EXPIRY_TIME')) * 1000,
+                        }
+                    )
+                    return {
+                        userId: user[0].id,
+                        role: user[0].role,
+                        email: user[0].email,
+                        accessToken: newAccessToken
                     }
-                )
-                req.res.clearCookie('accessToken')
-                generateCookie(
-                    req.res,
-                    'accessToken',
-                    newAccessToken,
-                    {
-                        httpOnly: true,
-                        secure: this.configService.get('NODE_ENV') === 'production',
-                        sameSite: 'lax',
-                        maxAge: parseInt(this.configService.get('JWT_EXPIRY_TIME')) * 1000,
-                    }
-                )
-                return newAccessToken
+                }
             }
 
             const refreshToken = req.cookies['refreshToken'] || req.headers['x-refresh-token'] as string
             if (!refreshToken) {
                 this.logger.warn('Refresh token not found');
                 throw new UnauthorizedException('Session expired. Please login again.')
+            }
+
+            const decoded = jwt.verify(refreshToken, this.configService.get<string>('JWT_REFRESH_SECRET_KEY'))
+            const user = await this.authRepository.getUserById(decoded['userId'])
+            if (user.length === 0) {
+                this.logger.warn('User not found');
+                throw new BadRequestException('User not found');
             }
             const newAccessToken = generateToken(
                 { 
@@ -234,12 +273,22 @@ export class AuthService {
                     maxAge: parseInt(this.configService.get('JWT_EXPIRY_TIME')) * 1000,
                 }
             )
-
+            return {
+                userId: user[0].id,
+                role: user[0].role,
+                email: user[0].email,
+                accessToken: newAccessToken
+            }
         } catch (error) {
             throw new HttpException(error.message, error.status || 500)
         }
     }
 
+    /**
+     * @description Resends the OTP to the user if allowed
+     * @param userId number
+     * @returns 
+     */
     async resendOtp(userId: number) {
         try {
             const canResendOtp = await this.authRepository.canResendOtp(userId)
@@ -259,10 +308,15 @@ export class AuthService {
                 timestamp: new Date().toISOString()
             }
         } catch (error) {
-            throw new HttpException(error.message, error.status || 500)
+            throw new HttpException(error.message || 'Otp can be send only thrice in 1 hour', error.status || 500)
         }
     }
 
+    /**
+     * @description Sends a password reset link to the user's email
+     * @param email string
+     * @returns 
+     */
     async forgotPassword(email: string) {
         try {
             const user = await this.authRepository.findUser(email)
@@ -284,6 +338,12 @@ export class AuthService {
         }
     }
 
+    /**
+     * @description Updates the user's password
+     * @param userId number
+     * @param newPassword string
+     * @returns 
+     */
     async newPassword(userId: number, newPassword: string) {
         try {
             const user = await this.authRepository.getUserById(userId)

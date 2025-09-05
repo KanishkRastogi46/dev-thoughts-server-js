@@ -81,6 +81,7 @@ export class AuthController {
     ) {
         const userId = parseInt(req.headers['x-user-id'] as string)
         const resendOtpResponse = await this.authService.resendOtp(userId)
+        res.status(200).json(resendOtpResponse)
     }
 
     @Post('refresh-token')
