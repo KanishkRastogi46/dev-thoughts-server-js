@@ -7,9 +7,10 @@ import * as z from 'zod'
 import { configSchema } from './common/config';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { AuthModule } from './services/auth/auth.module';
-import { UserModule } from './services/user/user.module';
+import { ProfileModule } from './services/profile/profile.module';
 import { ProtectedRoutesMiddleware } from './middlewares/protected-routes.middleware';
 import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
+import { HttpClientService } from './utils/http-client.service';
 
 @Module({
   imports: [
@@ -116,10 +117,14 @@ import { correlationIdMiddleware } from './middlewares/correlation-id.middleware
     }),
     DrizzleModule,
     AuthModule,
-    UserModule
+    ProfileModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PinoLogger],
+  providers: [
+	AppService, 
+	PinoLogger,
+    HttpClientService,
+],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

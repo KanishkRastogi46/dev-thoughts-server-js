@@ -17,12 +17,12 @@ async function bootstrap() {
   const configService = app.get(ConfigService)
   const port: number = configService.get<number>('PORT')
 
-  // app.setGlobalPrefix('api/v1')
-  // app.enableVersioning({
-  //   defaultVersion: '1',
-  //   type: VersioningType.URI,
-  //   prefix: 'v'
-  // })
+  app.setGlobalPrefix('api/v1')
+  app.enableVersioning({
+    defaultVersion: '1',
+    type: VersioningType.URI,
+    prefix: 'v'
+  })
   app.use(cookieParser())
   app.use(compression())
   app.useLogger(app.get(Logger))
