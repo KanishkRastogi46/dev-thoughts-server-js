@@ -8,15 +8,18 @@ import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { GlobalInterceptor } from './common/interceptor/global.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
 
   const configService = app.get(ConfigService);
   const port: number = configService.get<number>('PORT');
 
+  app.set('title', 'Dev Thoughts');
+  app.set('x-powered-by', false);
   app.enableCors({
     origin: configService.get<string>('CORS_ORIGIN').split(','),
     methods: '*',
@@ -51,6 +54,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(port, () => {
+    // eslint-disable-next-line no-undef
     console.log(`Server is running on port ${port}`);
   });
 }

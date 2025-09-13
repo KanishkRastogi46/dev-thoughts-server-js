@@ -4,7 +4,6 @@ import {
   MiddlewareConsumer,
   Module,
   NestModule,
-  RequestMethod,
 } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,6 +18,7 @@ import { ProtectedRoutesMiddleware } from './middlewares/protected-routes.middle
 import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { HttpClientService } from './utils/http-client.service';
 import { HealthModule } from './services/health/health.module';
+import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -133,6 +133,7 @@ import { HealthModule } from './services/health/health.module';
     AuthModule,
     ProfileModule,
     HealthModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, PinoLogger, HttpClientService],

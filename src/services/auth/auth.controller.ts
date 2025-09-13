@@ -111,7 +111,7 @@ export class AuthController {
     res.status(200).json(forgotPasswordResponse);
   }
 
-  @Post('new-password')
+  @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async newPassword(
     @Body() body: { password: string },

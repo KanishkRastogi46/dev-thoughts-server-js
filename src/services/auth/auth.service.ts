@@ -20,7 +20,7 @@ import { comparePassword } from 'src/utils/compare-password';
 import { generateToken } from 'src/utils/generate-token';
 import { generateCookie } from 'src/utils/generate-cookie';
 import { generateOTP } from 'src/utils/generate-otp';
-import { MailService } from 'src/utils/email.service';
+// import { MailService } from 'src/utils/email.service';
 import { HttpClientService } from 'src/utils/http-client.service';
 import { Profile } from './interface/profile.interface';
 
@@ -204,7 +204,6 @@ export class AuthService {
 
       return true;
     } catch (error: any) {
-      console.log('error', error);
       this.logger.error('Error during while validating otp', error);
       throw new HttpException(error.message, error.status || 500);
     }
