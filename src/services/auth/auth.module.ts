@@ -9,11 +9,6 @@ import { HttpClientService } from 'src/utils/http-client.service';
 @Module({
   imports: [DrizzleModule],
   controllers: [AuthController],
-  providers: [
-    AuthService, 
-    AuthRepository,
-    MailService,
-    HttpClientService
-  ],
+  providers: [AuthService, AuthRepository, MailService, HttpClientService],
 })
 export class AuthModule {}

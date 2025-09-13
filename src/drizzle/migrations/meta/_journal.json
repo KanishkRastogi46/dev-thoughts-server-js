@@ -50,6 +50,13 @@
       "when": 1757095907004,
       "tag": "0006_profile_table",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757759298385,
+      "tag": "0007_profile_user_table_modify",
+      "breakpoints": true
     }
   ]
 }

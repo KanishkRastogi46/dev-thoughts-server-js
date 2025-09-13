@@ -1,8 +1,8 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
-export const postCategoriesTable = pgTable("post_categories", {
-    id: serial("id").primaryKey(),
-    name: text("name").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-})
+export const postCategoriesTable = pgTable('post_categories', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

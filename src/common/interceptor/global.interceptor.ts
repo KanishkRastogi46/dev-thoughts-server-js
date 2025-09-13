@@ -1,4 +1,10 @@
-import { BadGatewayException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  BadGatewayException,
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 
 @Injectable()
