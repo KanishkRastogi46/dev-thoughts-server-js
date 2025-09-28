@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
 import * as cookieParser from 'cookie-parser';
 import * as compression from 'compression';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { GlobalInterceptor } from './common/interceptor/global.interceptor';
@@ -24,12 +24,9 @@ async function bootstrap() {
     origin: configService.get<string>('CORS_ORIGIN').split(','),
     methods: '*',
     credentials: true,
+    exposedHeaders: ['x-user-id', 'x-correlation-id'],
   });
   app.setGlobalPrefix('api/v1');
-  app.enableVersioning({
-    defaultVersion: '1',
-    type: VersioningType.URI,
-  });
   app.use(cookieParser());
   app.use(compression());
   app.useLogger(app.get(Logger));

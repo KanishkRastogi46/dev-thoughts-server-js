@@ -19,6 +19,7 @@ import { correlationIdMiddleware } from './middlewares/correlation-id.middleware
 import { HttpClientService } from './utils/http-client.service';
 import { HealthModule } from './services/health/health.module';
 import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
+import { HomeModule } from './services/home/home.module';
 
 @Module({
   imports: [
@@ -134,6 +135,7 @@ import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
     ProfileModule,
     HealthModule,
     CloudinaryModule,
+    HomeModule,
   ],
   controllers: [AppController],
   providers: [AppService, PinoLogger, HttpClientService],

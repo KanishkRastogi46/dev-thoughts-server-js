@@ -4,7 +4,7 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { and, eq, ne, or, sql } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
 import { userTable } from 'src/drizzle/schema/users.schema';
 import { otp } from 'src/drizzle/schema/otp.schema';

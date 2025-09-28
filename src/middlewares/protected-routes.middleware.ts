@@ -28,6 +28,7 @@ export class ProtectedRoutesMiddleware implements NestMiddleware {
         '/auth/resend-otp',
         '/auth/forgot-password',
         '/auth/new-password',
+        '/profile/country-list',
       ];
 
       const url = req.url;

@@ -1,11 +1,10 @@
 import {
-  BadGatewayException,
   CallHandler,
   ExecutionContext,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, tap, map, catchError, throwError } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 @Injectable()
 export class GlobalInterceptor implements NestInterceptor {
@@ -14,6 +13,7 @@ export class GlobalInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         const responseTime = Date.now() - now;
+        // eslint-disable-next-line no-undef
         console.log(`Request processed in ${responseTime}ms`);
       }),
     );
